@@ -11,8 +11,8 @@ import rendering.Color;
 public class Mesh {
 
     // construction
-    protected Vertex3D[] vertices;
-    protected Edge[] edges;
+    protected final Vertex3D[] vertices;
+    protected final Edge[] edges;
 
     protected Vertex3D position = new Vertex3D(0, 0, 0);
     protected Vertex3D rotation = new Vertex3D(0, 0, 0);
