@@ -1,5 +1,8 @@
 package geometry;
 
+/**
+ * 3d cube
+ */
 public class Cube extends Mesh {
 
     public Cube(double size) {
@@ -9,7 +12,14 @@ public class Cube extends Mesh {
         );
     }
 
+    /**
+     * creates all the vertices relative to the center (0, 0, 0)
+     * @param size how long each side should be
+     * @return all the vertices
+     */
     private static Vertex3D[] createVertices(double size) {
+        // because we use the center for calculating, we need to
+        // go up/down by half instead of the full size.
         double h = size / 2.0;
 
         return new Vertex3D[] {
@@ -25,6 +35,10 @@ public class Cube extends Mesh {
         };
     }
 
+    /**
+     * creates all the edges relative to the center (0, 0, 0)
+     * @return all the edges
+     */
     private static Edge[] createEdges() {
         return new Edge[] {
                 new Edge(0, 1),

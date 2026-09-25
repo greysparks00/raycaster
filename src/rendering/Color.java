@@ -1,5 +1,8 @@
 package rendering;
 
+/**
+ * binds words to commonly used rgb3 color codes.
+ */
 public enum Color {
 
     // colors
@@ -20,6 +23,7 @@ public enum Color {
         this.b = b;
     }
 
+    // getters for each color value
     public int r() { return r; }
     public int g() { return g; }
     public int b() { return b; }

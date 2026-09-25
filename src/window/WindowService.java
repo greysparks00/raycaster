@@ -28,6 +28,11 @@ public class WindowService {
         this.height = height;
     }
 
+    /**
+     * handles creating and defining the window
+     * and shows it, but it does not handle we do
+     * not handle the rendering here in this file.
+     */
     public void init() {
         System.out.println(
                 "[WINDOW SERVICE] Loaded LWJGL."
@@ -103,15 +108,28 @@ public class WindowService {
         glfwShowWindow(window);
     }
 
+    /**
+     * ran by rendering/Renderer
+     * updates the window every frame and
+     * handles the events completed
+     */
     public void update() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    /**
+     * returns whether the window should close or not
+     * @return boolean if the window should close
+     */
     public boolean shouldClose() {
         return glfwWindowShouldClose(window);
     }
 
+    /**
+     * used to clean up at the end of the program
+     * destroys all remenants and callbacks
+     */
     public void cleanup() {
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
@@ -124,11 +142,7 @@ public class WindowService {
         }
     }
 
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
+    // getters
+    public int getWidth() { return width; }   // make WindowService the only file to tell what
+    public int getHeight() { return height; } // the window dimensions are
 }

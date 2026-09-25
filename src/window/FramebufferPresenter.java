@@ -118,6 +118,9 @@ public class FramebufferPresenter {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    /**
+     * deletes textures at the end of the program
+     */
     public void cleanup() {
         glDeleteTextures(textureId);
     }

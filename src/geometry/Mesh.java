@@ -2,18 +2,24 @@ package geometry;
 
 import rendering.Color;
 
+/**
+ * base class for each shape.
+ * contains all the getters and setters
+ * each shape extends off of the Mesh class and
+ * then creates its own vertices and edges.
+ */
 public class Mesh {
 
     // construction
     protected Vertex3D[] vertices;
     protected Edge[] edges;
 
-    // data
     protected Vertex3D position = new Vertex3D(0, 0, 0);
     protected Vertex3D rotation = new Vertex3D(0, 0, 0);
 
     protected double scale = 1.0;
-    protected Color color = Color.WHITE;
+
+    protected Color color = Color.WHITE; // default to white color
 
     public Mesh(Vertex3D[] vertices, Edge[] edges) {
         this.vertices = vertices;
@@ -24,7 +30,6 @@ public class Mesh {
     public Vertex3D[] getVertices() {
         return vertices;
     }
-
     public Edge[] getEdges() {
         return edges;
     }
@@ -32,7 +37,6 @@ public class Mesh {
     public Vertex3D getPosition() {
         return position;
     }
-
     public Vertex3D getRotation() {
         return rotation;
     }
@@ -49,7 +53,6 @@ public class Mesh {
     public void setPosition(double x, double y, double z) {
         position = new Vertex3D(x, y, z);
     }
-
     public void setRotation(double x, double y, double z) {
         rotation = new Vertex3D(x, y, z);
     }
