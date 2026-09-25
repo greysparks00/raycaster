@@ -3,6 +3,7 @@
 package window;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
@@ -67,14 +68,22 @@ public class WindowService {
             throw new IllegalStateException("Failed to create the GLFW window.");
         }
 
-        glfwSetKeyCallback(
+        // key callback
+        try (GLFWKeyCallback keyCallback = glfwSetKeyCallback(
                 window, (window, key, scancode, action, mods) -> {
+                    // handle keys here
+
                     // if ESCAPE is pressed then close the window
                     if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
                         glfwSetWindowShouldClose(window, true);
                     }
+
                 }
-        );
+        )) {
+            if (keyCallback != null) {
+                keyCallback.free();
+            }
+        }
 
         try (MemoryStack stack = stackPush()) {
             IntBuffer pWidth = stack.mallocInt(1);
@@ -135,10 +144,10 @@ public class WindowService {
         glfwDestroyWindow(window);
         glfwTerminate();
 
-        GLFWErrorCallback callback = glfwSetErrorCallback(null);
-
-        if (callback != null) {
-            callback.free();
+        try (GLFWErrorCallback callback = glfwSetErrorCallback(null)) {
+            if (callback != null) {
+                callback.free();
+            }
         }
     }
 
