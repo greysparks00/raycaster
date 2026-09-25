@@ -13,7 +13,8 @@ public class Renderer {
     private double fov = Math.toRadians(90.0);
 
     // TEST TODO: DELETE
-    private Cube cube = new Cube(2);
+    private Cube cube = new Cube(4);
+    private Cube cube2 = new Cube(4);
     private double testRot = 0;
 
     /*
@@ -251,12 +252,17 @@ public class Renderer {
     public void render() {
         clear();
 
-        cube.setScale(2);
-        cube.setPosition(0, 0, 15);
+        cube.setPosition(5, 0, 15);
         cube.setRotation(testRot, testRot, testRot);
         cube.setColor(Color.GREEN);
 
         drawMesh(cube);
+
+        cube2.setPosition(-5, 0, 15);
+        cube2.setRotation(testRot, testRot, testRot);
+        cube2.setColor(Color.RED);
+
+        drawMesh(cube2);
 
         testRot += 0.015;
     }
