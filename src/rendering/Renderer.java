@@ -4,8 +4,6 @@ import geometry.Edge;
 import geometry.Vertex2D;
 import geometry.Vertex3D;
 
-import java.util.Arrays;
-
 public class Renderer {
 
     // dimensions
@@ -14,6 +12,8 @@ public class Renderer {
 
     // store pixels
     private final int[] pixels;
+
+    private double rotY = 0;
 
     public Renderer(int width, int height) {
         this.width = width;
@@ -46,11 +46,11 @@ public class Renderer {
         if (x0 < x1) {
             sx = 1;
         }
-        ;
+
         if (y0 < y1) {
             sy = 1;
         }
-        ;
+
 
         int error = dx - dy;
 
@@ -80,25 +80,85 @@ public class Renderer {
     }
 
     private void drawSquare(int originX, int originY, int scaler) {
-        Vertex2D v1 = new Vertex2D(originX, originY);
-        Vertex2D v2 = new Vertex2D(originX + scaler, originY);
-        Vertex2D v3 = new Vertex2D(originX, originY + scaler);
-        Vertex2D v4 = new Vertex2D(originX + scaler, originY + scaler);
+        Vertex2D[] vertices = {
+                new Vertex2D(originX, originY),
+                new Vertex2D(originX + scaler, originY),
+                new Vertex2D(originX, originY + scaler),
+                new Vertex2D(originX + scaler, originY + scaler)
+        };
 
-        Edge e1 = new Edge(v1, v2);
-        Edge e2 = new Edge(v1, v3);
-        Edge e3 = new Edge(v2, v4);
-        Edge e4 = new Edge(v3, v4);
+        Edge[] edges = {
+                new Edge(0, 1),
+                new Edge(0, 2),
+                new Edge(1, 3),
+                new Edge(2, 3)
+        };
 
         // draw edges
-        for (Edge edge : Arrays.asList(e1, e2, e3, e4)) {
+        for (Edge edge : edges) {
+            Vertex2D a = vertices[edge.a()];
+            Vertex2D b = vertices[edge.b()];
+
             drawLine(
-                    edge.a().x(),
-                    edge.a().y(),
-                    edge.b().x(),
-                    edge.b().y(),
+                    a.x(),
+                    a.y(),
+                    b.x(),
+                    b.y(),
                     255, 0, 0
             );
+        }
+    }
+
+    private void drawCube(double centerX, double centerY, double centerZ, double size, double rotationX, double rotationY, double rotationZ) {
+        double h = size / 2.0;
+
+        Vertex3D[] vertices = {
+                new Vertex3D(centerX - h, centerY - h, centerZ - h),
+                new Vertex3D(centerX + h, centerY - h, centerZ - h),
+                new Vertex3D(centerX - h, centerY + h, centerZ - h),
+                new Vertex3D(centerX + h, centerY + h, centerZ - h),
+
+                new Vertex3D(centerX - h, centerY - h, centerZ + h),
+                new Vertex3D(centerX + h, centerY - h, centerZ + h),
+                new Vertex3D(centerX - h, centerY + h, centerZ + h),
+                new Vertex3D(centerX + h, centerY + h, centerZ + h)
+        };
+
+        Edge[] edges = {
+                new Edge(0, 1),
+                new Edge(1, 3),
+                new Edge(3, 2),
+                new Edge(2, 0),
+                new Edge(4, 5),
+                new Edge(5, 7),
+                new Edge(7, 6),
+                new Edge(6, 4),
+                new Edge(0, 4),
+                new Edge(1, 5),
+                new Edge(2, 6),
+                new Edge(3, 7)
+        };
+
+        // find center vertex
+        Vertex3D center = new Vertex3D(centerX, centerY, centerZ);
+
+        //rotate each vertex before drawing
+        for (int i = 0; i < vertices.length; i++) {
+            vertices[i] = rotate(
+                    vertices[i],
+                    center,
+                    rotationX,
+                    rotationY,
+                    rotationZ
+            );
+        }
+
+        // draw edges
+        for (Edge edge : edges) {
+            Vertex3D a = vertices[edge.a()];
+            Vertex3D b = vertices[edge.b()];
+
+            draw3DLine(a, b);
         }
     }
 
@@ -108,10 +168,52 @@ public class Renderer {
 
         // width / 2 puts (0, 0) in the center of the screen
         int screenX = (int) (point.x() / point.z() * focalLength + ((double) width / 2));
-        int screenY = (int) (point.y() / point.z() * focalLength + ((double) height / 2));
+        int screenY = (int) (-point.y() / point.z() * focalLength + ((double) height / 2));
 
         // create the new vertex and return it
         return new Vertex2D(screenX, screenY);
+    }
+
+    private Vertex3D rotate(Vertex3D point, Vertex3D center, double angleX, double angleY, double angleZ) {
+        double x = point.x() - center.x();
+        double y = point.y() - center.y();
+        double z = point.z() - center.z();
+
+        // X rotation
+        double cosX = Math.cos(angleX);
+        double sinX = Math.sin(angleX);
+
+        double newY = y * cosX - z * sinX;
+        double newZ = y * sinX + z * cosX;
+
+        y = newY;
+        z = newZ;
+
+        // Y rotation
+        double cosY = Math.cos(angleY);
+        double sinY = Math.sin(angleY);
+
+        double newX = x * cosY - z * sinY;
+        newZ = x * sinY + z * cosY;
+
+        x = newX;
+        z = newZ;
+
+        // Z rotation
+        double cosZ = Math.cos(angleZ);
+        double sinZ = Math.sin(angleZ);
+
+        newX = x * cosZ - y * sinZ;
+        newY = x * sinZ + y * cosZ;
+
+        x = newX;
+        y = newY;
+
+        return new Vertex3D(
+                x + center.x(),
+                y + center.y(),
+                z + center.z()
+        );
     }
 
     private void draw3DLine(Vertex3D a, Vertex3D b) {
@@ -130,17 +232,9 @@ public class Renderer {
     public void render() {
         clear();
 
-//        // draw test square
-//        drawLine(100, 100, 800, 500, 255, 255, 255);
-//        drawLine(800, 100, 100, 500, 255, 0, 0);
-//        drawLine(500, 50, 500, 700, 0, 255, 0);
-//        drawLine(50, 400, 950, 400, 0, 0, 255);
-//        drawSquare(width / 2, height / 2, 100);
+        drawCube(0, 0, 5, 2, Math.toRadians(rotY), Math.toRadians(rotY), Math.toRadians(rotY));
 
-        draw3DLine(
-                new Vertex3D(-1, 0, 5),
-                new Vertex3D(1, 0, 5)
-        );
+        rotY += 0.5;
     }
 
     public void clear() {
