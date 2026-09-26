@@ -1,3 +1,4 @@
+import rendering.Camera;
 import rendering.Renderer;
 import window.FramebufferPresenter;
 import window.WindowService;
@@ -7,7 +8,10 @@ void main() {
     WindowService window = new WindowService(1024, 768);
     window.init();
 
+    Camera camera = new Camera();
+
     Renderer renderer = new Renderer(
+            camera,
             window.getWidth(),
             window.getHeight()
     );

@@ -4,13 +4,13 @@ import geometry.*;
 
 public class Renderer {
 
+    private final Camera camera;
+
     private final int width;
     private final int height;
 
     // stores window pixels
     private final int[] pixels;
-
-    private double fov = Math.toRadians(90.0);
 
     // TEST TODO: DELETE
     private Cube cube = new Cube(4);
@@ -20,12 +20,19 @@ public class Renderer {
     /*
      * CONSTRUCTOR
      */
-    public Renderer(int width, int height) {
+    public Renderer(Camera camera, int width, int height) {
+        this.camera = camera;
         this.width = width;
         this.height = height;
 
         pixels = new int[width * height];
     }
+
+        /*
+
+    DRAWING METHODS
+
+     */
 
     /**
      * draws the vertices and edges of a mesh
@@ -59,11 +66,13 @@ public class Renderer {
             );
 
             // move into world position
-            transformedVertices[i] = new Vertex3D(
+            Vertex3D worldVertex = new Vertex3D(
                     rotated.x() + position.x(),
                     rotated.y() + position.y(),
                     rotated.z() + position.z()
             );
+
+            transformedVertices[i] = worldToCamera(worldVertex);
         }
 
         // draw edges
@@ -77,56 +86,6 @@ public class Renderer {
                     mesh.getColor()
             );
         }
-    }
-
-    /**
-     * rotates a vertex around the center by provided radians
-     * @param point the 3d vertex to rotate
-     * @param angleX the rotation on the x-axis (radian)
-     * @param angleY the rotation on the y-axis (radian)
-     * @param angleZ the rotation on the z-axis (radian)
-     * @return the new rotated 3d vertex
-     */
-    private Vertex3D rotate(Vertex3D point, double angleX, double angleY, double angleZ) {
-        double x = point.x();
-        double y = point.y();
-        double z = point.z();
-
-        // X rotation
-        double cosX = Math.cos(angleX);
-        double sinX = Math.sin(angleX);
-
-        double newY = y * cosX - z * sinX;
-        double newZ = y * sinX + z * cosX;
-
-        y = newY;
-        z = newZ;
-
-        // Y rotation
-        double cosY = Math.cos(angleY);
-        double sinY = Math.sin(angleY);
-
-        double newX = x * cosY - z * sinY;
-        newZ = x * sinY + z * cosY;
-
-        x = newX;
-        z = newZ;
-
-        // Z rotation
-        double cosZ = Math.cos(angleZ);
-        double sinZ = Math.sin(angleZ);
-
-        newX = x * cosZ - y * sinZ;
-        newY = x * sinZ + y * cosZ;
-
-        x = newX;
-        y = newY;
-
-        return new Vertex3D(
-                x,
-                y,
-                z
-        );
     }
 
     /**
@@ -153,28 +112,6 @@ public class Renderer {
                 a2.y(),
                 color
         );
-    }
-
-    /**
-     * takes a 3d vertex and projects it into 2d space
-     * @param point the 3d vertex to project into a 2d vertex
-     * @return the projected 2d vertex
-     */
-    private Vertex2D project(Vertex3D point) {
-        if (point.z() <= 0.1) {
-            // don't project this point
-            // it will fuck and crash because it is so offscreen
-            return null;
-        }
-
-        double focalLength = (width / 2.0) / Math.tan(fov / 2.0);
-
-        // width / 2 puts (0, 0) in the center of the screen
-        int screenX = (int) (point.x() / point.z() * focalLength + ((double) width / 2));
-        int screenY = (int) (-point.y() / point.z() * focalLength + ((double) height / 2));
-
-        // create the new vertex and return it
-        return new Vertex2D(screenX, screenY);
     }
 
     /**
@@ -246,6 +183,107 @@ public class Renderer {
         pixels[index] = color.r() << 16 | color.g() << 8 | color.b();
     }
 
+    /*
+
+    PROJECTION METHODS
+
+     */
+
+    /**
+     * takes a 3d vertex and projects it into 2d space
+     * @param point the 3d vertex to project into a 2d vertex
+     * @return the projected 2d vertex
+     */
+    private Vertex2D project(Vertex3D point) {
+        if (point.z() <= 0.1) {
+            // don't project this point
+            // it will fuck and crash because it is so offscreen
+            return null;
+        }
+
+        double focalLength = (width / 2.0) / Math.tan(camera.getFov() / 2.0);
+
+        // width / 2 puts (0, 0) in the center of the screen
+        int screenX = (int) (point.x() / point.z() * focalLength + ((double) width / 2));
+        int screenY = (int) (-point.y() / point.z() * focalLength + ((double) height / 2));
+
+        // create the new vertex and return it
+        return new Vertex2D(screenX, screenY);
+    }
+
+    /**
+     * takes a 3d point and returns the position and rotation relative to the camera
+     * @param point the 3d point in the world
+     * @return the camera position of the point
+     */
+    private Vertex3D worldToCamera(Vertex3D point) {
+        Vertex3D cameraPosition = camera.getPosition();
+        Vertex3D cameraRotation = camera.getRotation();
+
+        double x = point.x() - cameraPosition.x();
+        double y = point.y() - cameraPosition.y();
+        double z = point.z() - cameraPosition.z();
+
+        Vertex3D relative = new Vertex3D(x, y, z);
+
+        return rotate(
+                relative,
+                -cameraRotation.x(),
+                -cameraRotation.y(),
+                -cameraRotation.z()
+        );
+    }
+
+    /**
+     * rotates a vertex around the center by provided radians
+     * @param point the 3d vertex to rotate
+     * @param angleX the rotation on the x-axis (radian)
+     * @param angleY the rotation on the y-axis (radian)
+     * @param angleZ the rotation on the z-axis (radian)
+     * @return the new rotated 3d vertex
+     */
+    private Vertex3D rotate(Vertex3D point, double angleX, double angleY, double angleZ) {
+        double x = point.x();
+        double y = point.y();
+        double z = point.z();
+
+        // X rotation
+        double cosX = Math.cos(angleX);
+        double sinX = Math.sin(angleX);
+
+        double newY = y * cosX - z * sinX;
+        double newZ = y * sinX + z * cosX;
+
+        y = newY;
+        z = newZ;
+
+        // Y rotation
+        double cosY = Math.cos(angleY);
+        double sinY = Math.sin(angleY);
+
+        double newX = x * cosY - z * sinY;
+        newZ = x * sinY + z * cosY;
+
+        x = newX;
+        z = newZ;
+
+        // Z rotation
+        double cosZ = Math.cos(angleZ);
+        double sinZ = Math.sin(angleZ);
+
+        newX = x * cosZ - y * sinZ;
+        newY = x * sinZ + y * cosZ;
+
+        x = newX;
+        y = newY;
+
+        return new Vertex3D(
+                x,
+                y,
+                z
+        );
+    }
+
     /**
      * main render loop
      */
@@ -289,17 +327,5 @@ public class Renderer {
      */
     public int[] getPixels() {
         return pixels;
-    }
-
-    /*
-     * SETTERS
-     */
-
-    /**
-     * sets the fov
-     * @param degrees how many degrees the fov should be (NOT RADIANS)
-     */
-    public void setFov(double degrees) {
-        fov = Math.toRadians(degrees);
     }
 }
