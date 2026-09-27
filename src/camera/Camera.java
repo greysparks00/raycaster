@@ -1,4 +1,4 @@
-package rendering;
+package camera;
 
 import geometry.Vertex3D;
 

@@ -1,6 +1,6 @@
 package geometry;
 
-import rendering.Color;
+import misc.Color;
 
 /**
  * base class for each shape.

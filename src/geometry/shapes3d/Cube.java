@@ -1,4 +1,8 @@
-package geometry;
+package geometry.shapes3d;
+
+import geometry.Edge;
+import geometry.Mesh;
+import geometry.Vertex3D;
 
 /**
  * 3d cube

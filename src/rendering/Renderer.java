@@ -1,8 +1,14 @@
 package rendering;
 
+import camera.Camera;
 import geometry.*;
+import misc.Color;
+import rendering.font.FontRenderer;
+import scene.Scene;
 
 public class Renderer {
+
+    private final FontRenderer fontRenderer = new FontRenderer("assets/fonts/googlesans.ttf", 24f);
 
     private final Camera camera;
 
@@ -12,10 +18,8 @@ public class Renderer {
     // stores window pixels
     private final int[] pixels;
 
-    // TEST TODO: DELETE
-    private Cube cube = new Cube(4);
-    private Cube cube2 = new Cube(4);
-    private double testRot = 0;
+    // the closest a line/point can be to the camera so it still gets drawn
+    private static final double NEAR_PLANE = 0.1;
 
     /*
      * CONSTRUCTOR
@@ -28,7 +32,7 @@ public class Renderer {
         pixels = new int[width * height];
     }
 
-        /*
+    /*
 
     DRAWING METHODS
 
@@ -96,15 +100,33 @@ public class Renderer {
      * @param color the color of the line
      */
     private void draw3DLine(Vertex3D a, Vertex3D b, Color color) {
-        Vertex2D a1 = project(a);
-        Vertex2D a2 = project(b);
+        boolean aVisible = a.z() >= NEAR_PLANE;
+        boolean bVisible = b.z() >= NEAR_PLANE;
 
-        // check if anything is null from when we projected the points
-        if (a1 == null || a2 == null) {
-            // something is null; do not draw this
+        /*
+        check if points are visible
+         */
+
+        // no points are visible
+        if (!aVisible && !bVisible) {
             return;
         }
 
+        // point a is not visible
+        if (!aVisible) {
+            a = intersectNearPlane(a, b);
+        }
+
+        // point b is not visible
+        if (!bVisible) {
+            b = intersectNearPlane(b, a);
+        }
+
+        // change to world space
+        Vertex2D a1 = project(a);
+        Vertex2D a2 = project(b);
+
+        // draw it
         drawLine(
                 a1.x(),
                 a1.y(),
@@ -172,15 +194,71 @@ public class Renderer {
      * @param y the y coordinate
      * @param color the color to set the pixel to
      */
-    private void setPixel(int x, int y, Color color) {
+    public void setPixel(int x, int y, Color color) {
         // check if pixel is in screen
         if (!(x >= 0 && x < width && y >= 0 && y < height)) {
             return;
         }
 
+        pixels[y * width + x] = color.toRGB();
+    }
+
+    public void setPixel(int x, int y, int r, int g, int b) {
+        // check if pixel is in screen
+        if (!(x >= 0 && x < width && y >= 0 && y < height)) {
+            return;
+        }
+
+        pixels[y * width + x] = (r << 16) | (g << 8) | b;
+    }
+
+    /**
+     * blends a pixels color according to alpha
+     * @param x the x position
+     * @param y the y position
+     * @param r the red value
+     * @param g the green value
+     * @param b the blue value
+     * @param alpha the alpha value
+     */
+    public void blendPixel(int x, int y, int r, int g, int b, int alpha) {
+        // output = source * alpha + destination * (1 - alpha)
+
+        // bounds check
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            return;
+        }
+
+        // fully transparent
+        if (alpha <= 0) {
+            return;
+        }
+
+        // fully visible
+        if (alpha >= 255) {
+            setPixel(x, y, r, g, b);
+            return;
+        }
+
         int index = y * width + x;
 
-        pixels[index] = color.r() << 16 | color.g() << 8 | color.b();
+        // existing framebuffer color
+        int existing = pixels[index];
+
+        int dstR = (existing >> 16) & 0xFF;
+        int dstG = (existing >> 8) & 0xFF;
+        int dstB = existing & 0xFF;
+
+        // convert 0-255 alpha into 0.0-1.0
+        double a = alpha / 255.0;
+
+        // blend source color with existing destination color
+        int outR = (int) (r * a + dstR * (1.0 - a));
+        int outG = (int) (g * a + dstG * (1.0 - a));
+        int outB = (int) (b * a + dstB * (1.0 - a));
+
+        // pack rgb back into framebuffer
+        pixels[index] = (outR << 16) | (outG << 8) | outB;
     }
 
     /*
@@ -195,12 +273,6 @@ public class Renderer {
      * @return the projected 2d vertex
      */
     private Vertex2D project(Vertex3D point) {
-        if (point.z() <= 0.1) {
-            // don't project this point
-            // it will fuck and crash because it is so offscreen
-            return null;
-        }
-
         double focalLength = (width / 2.0) / Math.tan(camera.getFov() / 2.0);
 
         // width / 2 puts (0, 0) in the center of the screen
@@ -284,25 +356,44 @@ public class Renderer {
         );
     }
 
+    /*
+
+    HELPER METHODS
+
+     */
+
+    /**
+     * finds the 3d vertex where the line segment (a, b) crosses the
+     * near plane point
+     * @param a point a
+     * @param b point b
+     * @return the 3d vertex where the line segment crosses the near plane
+     */
+    private Vertex3D intersectNearPlane(Vertex3D a, Vertex3D b) {
+        // P(t) = A + t(B - A)
+        double t = (NEAR_PLANE - a.z()) / (b.z() - a.z());
+
+        // find where the line crosses near plane
+        double x = a.x() + t * (b.x() - a.x());
+        double y = a.y() + t * (b.y() - a.y());
+
+        return new Vertex3D(x, y, NEAR_PLANE);
+    }
+
     /**
      * main render loop
      */
-    public void render() {
+    public void render(Scene scene) {
         clear();
 
-        cube.setPosition(5, 0, 15);
-        cube.setRotation(testRot, testRot, testRot);
-        cube.setColor(Color.GREEN);
+        // loop through all objects in scene and draw them
+        for (Mesh mesh : scene.getObjects()) {
+            drawMesh(mesh);
+        }
 
-        drawMesh(cube);
-
-        cube2.setPosition(-5, 0, 15);
-        cube2.setRotation(testRot, testRot, testRot);
-        cube2.setColor(Color.RED);
-
-        drawMesh(cube2);
-
-        testRot += 0.015;
+        fontRenderer.drawText(this, "FPS: " + DebugStats.getFps(), 0, 0, Color.WHITE);
+        fontRenderer.drawText(this, "GREEN", 20, 60, Color.GREEN);
+        fontRenderer.drawText(this, "WHITE", 20, 100, Color.WHITE);
     }
 
     /**
