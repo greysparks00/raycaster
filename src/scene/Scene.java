@@ -1,10 +1,6 @@
 package scene;
 
-import camera.Camera;
 import geometry.Mesh;
-import rendering.Renderer;
-import rendering.font.FontRenderer;
-import window.FramebufferPresenter;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,5 @@
 package rendering.font;
 
-import geometry.Mesh;
 import misc.Color;
 import rendering.Renderer;
 
