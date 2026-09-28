@@ -137,7 +137,7 @@ public class WindowService {
 
     /**
      * used to clean up at the end of the program
-     * destroys all remenants and callbacks
+     * destroys all remnants and callbacks
      */
     public void cleanup() {
         glfwFreeCallbacks(window);
@@ -151,7 +151,13 @@ public class WindowService {
         }
     }
 
-    // getters
+    /*
+     * GETTERS
+     */
+    public String getWindowName() {
+        return WINDOW_NAME;
+    }
+
     public int getWidth() { return width; }   // make WindowService the only file to tell what
     public int getHeight() { return height; } // the window dimensions are
 }
