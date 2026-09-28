@@ -133,7 +133,6 @@ public class DebugStats {
         );
 
         // print heartbeat
-        IO.println("[DEBUGS STATS SERVICE] Created debug text labels.");
     }
 
     /**
