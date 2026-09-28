@@ -131,6 +131,9 @@ public class DebugStats {
                 Color.WHITE,
                 0, 240
         );
+
+        // print heartbeat
+        IO.println("[DEBUGS STATS SERVICE] Created debug text labels.");
     }
 
     /**
