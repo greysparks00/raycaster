@@ -1,9 +1,8 @@
 import geometry.shapes3d.Cube;
 import camera.Camera;
-import misc.Color;
+import rendering.DebugStats;
 import rendering.Renderer;
 import rendering.font.FontRenderer;
-import rendering.font.TextEntity;
 import scene.Scene;
 import window.FramebufferPresenter;
 import window.WindowService;
@@ -33,6 +32,20 @@ public class Main {
                 window.getHeight()
         );
 
+
+        // TODO: REMOVE
+        // debug stats creator
+        DebugStats debugStats = new DebugStats(
+                window,
+                renderer,
+                scene,
+                camera,
+                fontRenderer,
+                presenter
+        );
+
+        scene.setDebugStats(debugStats);
+
         // add shit to scene
         double rot = 0.0;
 
@@ -44,9 +57,6 @@ public class Main {
 
         scene.add(cube1);
         scene.add(cube2);
-
-        TextEntity testText = fontRenderer.createText("hi", Color.RED, 20, 20);
-        testText.setText("goy");
 
         while (!window.shouldClose()) {
             renderer.render(scene);

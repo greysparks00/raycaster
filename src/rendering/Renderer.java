@@ -390,6 +390,14 @@ public class Renderer {
     public void render(Scene scene) {
         clear();
 
+        // if we have a debug stats module; render the debug stats
+        DebugStats debugStats = scene.getDebugStats();
+
+        if (debugStats != null) {
+            // debug stats exists
+            debugStats.render();
+        }
+
         // loop through all objects in scene and draw them
         for (Mesh mesh : scene.getObjects()) {
             drawMesh(mesh);
