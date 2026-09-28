@@ -4,13 +4,13 @@ import camera.Camera;
 import geometry.*;
 import misc.Color;
 import rendering.font.FontRenderer;
+import rendering.font.TextEntity;
 import scene.Scene;
 
 public class Renderer {
 
-    private final FontRenderer fontRenderer = new FontRenderer("assets/fonts/googlesans.ttf", 24f);
-
     private final Camera camera;
+    private final FontRenderer fontRenderer;
 
     private final int width;
     private final int height;
@@ -24,12 +24,16 @@ public class Renderer {
     /*
      * CONSTRUCTOR
      */
-    public Renderer(Camera camera, int width, int height) {
+    public Renderer(Camera camera, FontRenderer fontRenderer, int width, int height) {
         this.camera = camera;
+        this.fontRenderer = fontRenderer;
         this.width = width;
         this.height = height;
 
         pixels = new int[width * height];
+
+        // pass in main renderer (this) to the font renderer
+        fontRenderer.setMainRenderer(this);
     }
 
     /*
@@ -391,9 +395,10 @@ public class Renderer {
             drawMesh(mesh);
         }
 
-        fontRenderer.drawText(this, "FPS: " + DebugStats.getFps(), 0, 0, Color.WHITE);
-        fontRenderer.drawText(this, "GREEN", 20, 60, Color.GREEN);
-        fontRenderer.drawText(this, "WHITE", 20, 100, Color.WHITE);
+        // loop through all text entity objects and draw them
+        for (TextEntity textEntity : fontRenderer.getTextEntityList()) {
+            fontRenderer.drawText(textEntity);
+        }
     }
 
     /**

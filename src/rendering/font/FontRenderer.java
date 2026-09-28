@@ -1,5 +1,6 @@
 package rendering.font;
 
+import geometry.Mesh;
 import misc.Color;
 import rendering.Renderer;
 
@@ -7,9 +8,18 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FontRenderer {
 
+    // store all created texts
+    private final List<TextEntity> textEntityList = new ArrayList<>();
+
+    // renderer object
+    private Renderer renderer;
+
+    // loaded font with size
     private Font font;
 
     /**
@@ -37,13 +47,16 @@ public class FontRenderer {
     /**
      * creates a buffered image using the font and the provided text
      * and then sets each pixel to that image
-     * @param renderer the renderer object
-     * @param text the text to draw
-     * @param x the x position of the text
-     * @param y the y position of the text
-     * @param color the color to draw the text in
+     * @param textEntity the text entity to use for information
+     *                   payload
      */
-    public void drawText(Renderer renderer, String text, int x, int y, Color color) {
+    public void drawText(TextEntity textEntity) {
+        // get payload
+        String text  = textEntity.getText();
+        Color  color = textEntity.getColor();
+        int x        = textEntity.getX();
+        int y        = textEntity.getY();
+
         BufferedImage image = createTextImage(text, color);
 
         // loop through the entire image and set each pixel on the renderer to the image
@@ -130,5 +143,53 @@ public class FontRenderer {
         graphics.dispose();
 
         return image;
+    }
+
+    /**
+     * creates a new text object and stores it to be rendered
+     * @param text the text to display
+     * @param color the color to display the text in
+     * @param x the x coordinate of the text
+     * @param y the y coordinate of the text
+     */
+    public TextEntity createText(String text, Color color, int x, int y) {
+        TextEntity newTextEntity = new TextEntity(
+                text,
+                color,
+                x,
+                y
+        );
+
+        textEntityList.add(newTextEntity);
+
+        return newTextEntity;
+    }
+
+    /**
+     * removes a text entity from the drawing list
+     * @param textEntity the text entity to remove
+     */
+    public void removeText(TextEntity textEntity) {
+        textEntityList.remove(textEntity);
+    }
+
+    /**
+     * gets the created text entities
+     * @return the text entity list
+     */
+    public List<TextEntity> getTextEntityList() {
+        return textEntityList;
+    }
+
+    /**
+     * sets the main renderer
+     * @param mainRenderer the main renderer object
+     */
+    public void setMainRenderer(Renderer mainRenderer) {
+        if (renderer != null) {
+            System.out.println("[FONT RENDERER] WARNING! Attempting to set main renderer when it is already set!");
+        }
+
+        renderer = mainRenderer;
     }
 }

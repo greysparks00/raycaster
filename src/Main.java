@@ -1,10 +1,14 @@
 import geometry.shapes3d.Cube;
 import camera.Camera;
+import misc.Color;
 import rendering.Renderer;
+import rendering.font.FontRenderer;
+import rendering.font.TextEntity;
 import scene.Scene;
 import window.FramebufferPresenter;
 import window.WindowService;
 
+// keep class so we can use configuration
 public class Main {
     void main() {
         // create
@@ -13,10 +17,13 @@ public class Main {
 
         Camera camera = new Camera();
 
+        FontRenderer fontRenderer = new FontRenderer("assets/fonts/googlesans.ttf", 24f);
+
         Scene scene = new Scene();
 
         Renderer renderer = new Renderer(
                 camera,
+                fontRenderer,
                 window.getWidth(),
                 window.getHeight()
         );
@@ -37,6 +44,9 @@ public class Main {
 
         scene.add(cube1);
         scene.add(cube2);
+
+        TextEntity testText = fontRenderer.createText("hi", Color.RED, 20, 20);
+        testText.setText("goy");
 
         while (!window.shouldClose()) {
             renderer.render(scene);
